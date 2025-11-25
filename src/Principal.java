@@ -1,5 +1,6 @@
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Random;
 import javax.swing.JOptionPane;
 
 public class Principal {
@@ -7,20 +8,25 @@ public class Principal {
     static ArrayList<Integer> listaOriginal = new ArrayList<>();
     static ArrayList<Integer> listaTrabalho = new ArrayList<>();
 
+    // Para listas aleatórias reprodutíveis na apresentação
+    static final long RANDOM_SEED = 42L;
+
     public static void main(String[] args) {
 
         String opcao = "";
 
-        while (!opcao.equals("7")) {
+        while (!"7".equals(opcao)) {
             opcao = JOptionPane.showInputDialog(
                     "===== MENU - COMB SORT =====\n" +
-                    "1 - Preencher Lista\n" +
+                    "1 - Preencher Lista (conjunto fixo do professor)\n" +
                     "2 - Ordenar com Comb Sort (Alg 1)\n" +
                     "3 - Ordenar com Collections.sort (Alg 2)\n" +
                     "4 - Mostrar Lista Ordenada\n" +
                     "5 - Mostrar Lista Original\n" +
                     "6 - Mostrar Tempos (ns)\n" +
-                    "7 - Sair"
+                    "7 - Sair\n" +
+                    "8 - Preencher Lista com 5.000 números aleatórios\n" +
+                    "9 - Incluir até 10 números informados pelo usuário"
             );
 
             if (opcao == null) break;
@@ -47,6 +53,12 @@ public class Principal {
                 case "7":
                     JOptionPane.showMessageDialog(null, "Saindo...");
                     break;
+                case "8":
+                    preencherListaGrande5000();
+                    break;
+                case "9":
+                    incluirAteDezNumerosUsuario();
+                    break;
                 default:
                     JOptionPane.showMessageDialog(null, "Opção inválida!");
             }
@@ -54,7 +66,7 @@ public class Principal {
     }
 
     // ================================================================
-    // 1) Preencher lista
+    // 1) Preencher lista com os dados fixos do professor
     // ================================================================
     public static void preencherLista() {
         listaOriginal.clear();
@@ -78,6 +90,63 @@ public class Principal {
     }
 
     // ================================================================
+    // 8) Preencher com 5.000 números aleatórios (substitui a lista)
+    // ================================================================
+    public static void preencherListaGrande5000() {
+        listaOriginal.clear();
+        Random rnd = new Random(RANDOM_SEED);
+        final int N = 5000;
+        final int MIN = 0;
+        final int MAX = 100_000; // valores na faixa [0, 100000)
+
+        for (int i = 0; i < N; i++) {
+            listaOriginal.add(rnd.nextInt(MAX - MIN) + MIN);
+        }
+
+        listaTrabalho = new ArrayList<>(listaOriginal);
+        JOptionPane.showMessageDialog(null, "Lista aleatória preenchida com " + N + " elementos!");
+    }
+
+    // ================================================================
+    // 9) Incluir até 10 números informados pelo usuário (acrescenta)
+    // Aceita entrada separada por vírgula, valida inteiros e limita a 10.
+    // ================================================================
+    public static void incluirAteDezNumerosUsuario() {
+        String entrada = JOptionPane.showInputDialog(
+                "Digite até 10 números inteiros separados por vírgula.\n" +
+                "Ex.: 12, 7, -3, 99");
+
+        if (entrada == null || entrada.trim().isEmpty()) {
+            JOptionPane.showMessageDialog(null, "Nenhum número inserido.");
+            return;
+        }
+
+        String[] partes = entrada.split(",");
+        int adicionados = 0;
+
+        for (int i = 0; i < partes.length && adicionados < 10; i++) {
+            String p = partes[i].trim();
+            if (p.isEmpty()) continue;
+            try {
+                int valor = Integer.parseInt(p);
+                listaOriginal.add(valor);
+                adicionados++;
+            } catch (NumberFormatException e) {
+                // ignora tokens inválidos
+            }
+        }
+
+        if (adicionados == 0) {
+            JOptionPane.showMessageDialog(null, "Nenhum inteiro válido foi inserido.");
+            return;
+        }
+
+        // sempre que a original mudar, a de trabalho é resetada
+        listaTrabalho = new ArrayList<>(listaOriginal);
+        JOptionPane.showMessageDialog(null, "Foram adicionados " + adicionados + " número(s) à lista.");
+    }
+
+    // ================================================================
     // 2) Ordenar com Comb Sort
     // ================================================================
     public static void ordenarCombSort() {
@@ -87,7 +156,6 @@ public class Principal {
         }
 
         listaTrabalho = new ArrayList<>(listaOriginal);
-
         combSort(listaTrabalho);
 
         JOptionPane.showMessageDialog(null, "Lista ordenada com Comb Sort!");
@@ -103,7 +171,6 @@ public class Principal {
         }
 
         listaTrabalho = new ArrayList<>(listaOriginal);
-
         Collections.sort(listaTrabalho);
 
         JOptionPane.showMessageDialog(null, "Lista ordenada com Collections.sort!");
@@ -113,8 +180,28 @@ public class Principal {
     // 4 e 5) Exibição
     // ================================================================
     public static void mostrar(String titulo, ArrayList<Integer> lista) {
-        JOptionPane.showMessageDialog(null, titulo + ":\n" + lista);
-        System.out.println(titulo + ": " + lista);
+        if (lista == null || lista.isEmpty()) {
+            JOptionPane.showMessageDialog(null, "Lista vazia. Preencha primeiro.");
+            return;
+        }
+
+        // Evita telas gigantes: se a lista for muito grande, mostra preview
+        String conteudo;
+        int maxPreview = 50;
+        if (lista.size() <= maxPreview) {
+            conteudo = lista.toString();
+        } else {
+            StringBuilder sb = new StringBuilder("[");
+            for (int i = 0; i < maxPreview; i++) {
+                sb.append(lista.get(i));
+                if (i < maxPreview - 1) sb.append(", ");
+            }
+            sb.append(", ... (total ").append(lista.size()).append(")]");
+            conteudo = sb.toString();
+        }
+
+        JOptionPane.showMessageDialog(null, titulo + ":\n" + conteudo);
+        System.out.println(titulo + ": " + conteudo);
     }
 
     // ================================================================
@@ -143,6 +230,7 @@ public class Principal {
 
         String msg =
                 "===== TEMPOS EM NANOSEGUNDOS =====\n\n" +
+                "Tamanho da lista: " + listaOriginal.size() + "\n" +
                 "Comb Sort:            " + tempoComb + " ns\n" +
                 "Collections.sort:     " + tempoColl + " ns\n";
 
@@ -157,7 +245,7 @@ public class Principal {
         int n = lista.size();
         int gap = n;
         boolean houveTroca = true;
-        double fator = 1.3;
+        final double fator = 1.3;
 
         while (gap > 1 || houveTroca) {
             gap = (int)(gap / fator);
