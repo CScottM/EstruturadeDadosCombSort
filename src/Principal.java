@@ -1,5 +1,5 @@
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Collections; // Mantido apenas caso queira usar em outro lugar, mas não é usado na opção 3
 import java.util.Random;
 import javax.swing.JOptionPane;
 
@@ -17,10 +17,10 @@ public class Principal {
 
         while (!"7".equals(opcao)) {
             opcao = JOptionPane.showInputDialog(
-                    "===== MENU - COMB SORT =====\n" +
+                    "===== MENU - COMB SORT vs BUBBLE SORT =====\n" +
                     "1 - Preencher Lista (conjunto fixo do professor)\n" +
                     "2 - Ordenar com Comb Sort (Alg 1)\n" +
-                    "3 - Ordenar com Collections.sort (Alg 2)\n" +
+                    "3 - Ordenar com Bubble Sort (Alg 2)\n" + // ALTERADO AQUI
                     "4 - Mostrar Lista Ordenada\n" +
                     "5 - Mostrar Lista Original\n" +
                     "6 - Mostrar Tempos (ns)\n" +
@@ -39,7 +39,7 @@ public class Principal {
                     ordenarCombSort();
                     break;
                 case "3":
-                    ordenarCollections();
+                    ordenarBubbleSort(); // ALTERADO AQUI
                     break;
                 case "4":
                     mostrar("Lista Ordenada", listaTrabalho);
@@ -109,7 +109,6 @@ public class Principal {
 
     // ================================================================
     // 9) Incluir até 10 números informados pelo usuário (acrescenta)
-    // Aceita entrada separada por vírgula, valida inteiros e limita a 10.
     // ================================================================
     public static void incluirAteDezNumerosUsuario() {
         String entrada = JOptionPane.showInputDialog(
@@ -162,18 +161,18 @@ public class Principal {
     }
 
     // ================================================================
-    // 3) Ordenar com Collections.sort (baseline)
+    // 3) Ordenar com Bubble Sort (SUBSTITUIU COLLECTIONS)
     // ================================================================
-    public static void ordenarCollections() {
+    public static void ordenarBubbleSort() {
         if (listaOriginal.isEmpty()) {
             JOptionPane.showMessageDialog(null, "Preencha a lista primeiro!");
             return;
         }
 
         listaTrabalho = new ArrayList<>(listaOriginal);
-        Collections.sort(listaTrabalho);
+        bubbleSort(listaTrabalho); // Chama o novo método Bubble Sort
 
-        JOptionPane.showMessageDialog(null, "Lista ordenada com Collections.sort!");
+        JOptionPane.showMessageDialog(null, "Lista ordenada com Bubble Sort!");
     }
 
     // ================================================================
@@ -185,7 +184,6 @@ public class Principal {
             return;
         }
 
-        // Evita telas gigantes: se a lista for muito grande, mostra preview
         String conteudo;
         int maxPreview = 50;
         if (lista.size() <= maxPreview) {
@@ -222,17 +220,18 @@ public class Principal {
         long t2 = System.nanoTime();
         long tempoComb = t2 - t1;
 
-        // Collections.sort
+        // Bubble Sort (Mudança aqui: mede o Bubble Sort agora)
         long t3 = System.nanoTime();
-        Collections.sort(lista2);
+        bubbleSort(lista2);
         long t4 = System.nanoTime();
-        long tempoColl = t4 - t3;
+        long tempoBubble = t4 - t3;
 
         String msg =
                 "===== TEMPOS EM NANOSEGUNDOS =====\n\n" +
                 "Tamanho da lista: " + listaOriginal.size() + "\n" +
-                "Comb Sort:            " + tempoComb + " ns\n" +
-                "Collections.sort:     " + tempoColl + " ns\n";
+                "Comb Sort:    " + String.format("%,d", tempoComb) + " ns\n" +
+                "Bubble Sort:  " + String.format("%,d", tempoBubble) + " ns\n\n" +
+                "(Bubble Sort é geralmente MUITO mais lento em listas grandes)";
 
         JOptionPane.showMessageDialog(null, msg);
         System.out.println(msg);
@@ -260,6 +259,32 @@ public class Principal {
                     lista.set(i + gap, temp);
                     houveTroca = true;
                 }
+            }
+        }
+    }
+
+    // ================================================================
+    // IMPLEMENTAÇÃO DO BUBBLE SORT (NOVO)
+    // ================================================================
+    public static void bubbleSort(ArrayList<Integer> lista) {
+        int n = lista.size();
+        boolean trocou;
+        
+        for (int i = 0; i < n - 1; i++) {
+            trocou = false;
+            // O laço vai até n - i - 1 porque os últimos i elementos já estão ordenados
+            for (int j = 0; j < n - i - 1; j++) {
+                if (lista.get(j) > lista.get(j + 1)) {
+                    // Troca
+                    int temp = lista.get(j);
+                    lista.set(j, lista.get(j + 1));
+                    lista.set(j + 1, temp);
+                    trocou = true;
+                }
+            }
+            // Se não houve troca nesta passagem, a lista já está ordenada
+            if (!trocou) {
+                break;
             }
         }
     }
